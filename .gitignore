@@ -1,0 +1,5 @@
+build
+patches
+*.elf
+*.nds
+*.pnps
