@@ -26,7 +26,12 @@
 _start:
 	.word	0x524f5050
 	.word	index
-	
+
+#define	P4_LOAD_ADDRESS	0x00279400
+#define	S2_LOAD_ADDRESS	0x002b0000
+#define	DATA_ADDRESS	0x00279000
+#define READ_SIZE	0x9000
+
 @---------------------------------------------------------------------------------
 patch_4_x_1:
 @---------------------------------------------------------------------------------
@@ -36,61 +41,44 @@ patch_4_x_1:
 @---------------------------------------------------------------------------------
 p4_1_start:
 @---------------------------------------------------------------------------------
-	.word 0x0010f2b9
-	.word 0x00272bae
-	.word 0xbadc0ded
-	.word 0x0018f19c
-	.word 0x0010b690
-	.word 0x00fab000
-	.word 0x00200200
-	.word 0x0010f2b9
-	.word 0x00279000
-	.word 0x00000001
-	.word 0x001549e1
-	.word 0x00276f38
-	.word 0x001b82ac
-	.word 0x0018d5dc
-	.word 0x00278340
-	.word 0x00100200
-	.word 0x000048cc
-	.word 0x00143d60
-	.word 0x0010f2b9
-	.word 0x00279000
-	.word 0x002b0000
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001549e1
-	.word 0x00000000
-	.word 0x001549e1
-	.word 0x00279020
-	.word 0x0010538c
-	.word 0x00009000
-	.word 0x001b3958
-	.word 0x002104e5
-	.word 0x0019da00
-	.word 0x00017500
-	.word 0x0021df86
-	.word 0x001ac100
-	.word 0x001dda22
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x001002f9
-	.word 0x0010538c
-	.word 0x00036b24
-	.word 0x00143d60
+	.word 0x0010f2b9		@ pop {r0,r2,pc}
+	.word 0x00272bae		@ (r0) (char * "YS:")
+	.word 0xdeadbeef		@ (r2)
+	.word 0x0018f19c		@ FS_MOUNTSDMC(), ends with  ldmfd   sp!, {r3-r5,pc}
+	.word 0xdeadbeef		@ (r3)
+	.word 0xdeadbeef		@ (r4)
+	.word 0xdeadbeef		@ (r5)
+	.word 0x0010f2b9		@ pop {r0,r2,pc}
+	.word DATA_ADDRESS		@ (r0) _this
+	.word 0x00000001		@ (r2) openflags
+	.word 0x001549e1		@ pop {r1,pc}
+	.word 0x00276f38		@ (utf16* "YS:/Launcher.dat")
+	.word 0x001b82ac		@ IFile_Open(): r0=_this r1=UTF16 path r2=openflags, ends with ldmfd sp!, {r4-r8,pc}
+	.word 0xdeadbeef		@ (r4)
+	.word 0xdeadbeef		@ (r5)
+	.word 0xdeadbeef		@ (r6)
+	.word 0xdeadbeef		@ (r7)
+	.word 0xdeadbeef		@ (r8)
+	.word 0x0010f2b9		@ pop {r0,r2,pc}
+	.word DATA_ADDRESS		@ (r0) _this
+	.word S2_LOAD_ADDRESS		@ (r2) buffer
+	.word 0x001549e1		@ pop {r1,pc}
+	.word DATA_ADDRESS + 32		@ (r1) &readbytes
+	.word 0x0010538c		@ pop {r3,pc}
+	.word READ_SIZE			@ (r3) size
+	.word 0x001b3958		@ IFile_Read(): r0=_this r1=&readbytes r2=readbuf r3=size, ends with ldmfd sp!,{r4-r9,pc}
+					@ This reads the first READ_SIZE bytes from the file to S2_LOAD_ADDRESS.
+	.word 0xdeadbeef		@ (r4)
+	.word 0xdeadbeef		@ (r5)
+	.word 0xbadc0ded		@ (r6) - gets overwritten with counter and CRC1
+	.word 0xdeadbeef		@ (r7)
+	.word 0xdeadbeef		@ (r8)
+	.word 0xdeadbeef		@ (r9)
+	.word 0x0010538c		@ pop {r3,pc}
+
+	.word (S2_LOAD_ADDRESS-(P4_LOAD_ADDRESS+p4_1_end-p4_1_start))
+
+	.word 0x00143d60		@ add sp,sp,r3 | ldr pc,[sp],#4
 @---------------------------------------------------------------------------------
 p4_1_end:
 @---------------------------------------------------------------------------------
@@ -104,16 +92,16 @@ patch_4_x_2:
 @---------------------------------------------------------------------------------
 p4_2_start:
 @---------------------------------------------------------------------------------
-	.word 0x0010f2b9
-	.word 0x0001fe00
-	.word 0x00000100
-	.word 0x001549e1
-	.word 0x00279400
-	.word 0x001334fc
-	.word 0x001e8cd0
-	.word 0x0010538c
-	.word 0xf027949c
-	.word 0x00143d60
+	.word 0x0010f2b9			@ pop {r0,r2,pc}
+	.word 0x0001fe00			@ (r0) offset in firmware
+	.word 0x00000100			@ (r2) size
+	.word 0x001549e1			@ pop {r1,pc}
+	.word P4_LOAD_ADDRESS			@ (r1) dst
+	.word 0x001334fc			@ cfg:nor::ReadData(offset,dst,size), ends with ldmfd   sp!,{r4,pc}
+	.word 0xdeadbeef			@ (r4)
+	.word 0x0010538c			@ pop {r3,pc}
+	.word P4_LOAD_ADDRESS - 0x0fffff64	@ (r3)
+	.word 0x00143d60			@ add sp,sp,r3 | ldr pc,[sp],#4
 @---------------------------------------------------------------------------------
 p4_2_end:
 @---------------------------------------------------------------------------------
