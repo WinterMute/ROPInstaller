@@ -3,19 +3,19 @@
 @
 @	0	4	Header - 'PPOR'
 @	4	4	offset to index
-@	
+@
 @	index entry
 @	0	4	Firmware revision this patch set applies to
 @	8	4	Offset in file to patch set
 @
 @	patch set
-@	0	4	Header	- 'PTCH'	
+@	0	4	Header	- 'PTCH'
 @	4	4	Number of patches
 @
 @	for each patch
 @	0	4	size of patch
 @	4	4	offset in user settings to patch
-@	8	...	patch data		
+@	8	...	patch data
 @---------------------------------------------------------------------------------
 
 	.arm
