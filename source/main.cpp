@@ -13,7 +13,7 @@ u8 workbuffer[1024] ALIGN(32);
 using namespace std;
 
 struct patchEntry {
-	string fwVersion;
+	string description;
 	u32 fileoffset;
 };
 
@@ -21,7 +21,7 @@ struct patchEntry {
 void halt() {
 //---------------------------------------------------------------------------------
 	int pressed;
-	
+
 	iprintf("Press A to exit\n");
 
 	while(1) {
@@ -61,10 +61,10 @@ void showPatchList (const vector<patchEntry>& patchList, int startRow) {
 
 	for (int i = 0; i < ((int)patchList.size() - startRow) && i < ITEMS_PER_SCREEN; i++) {
 		const patchEntry* patch = &patchList.at(i + startRow);
-		
+
 		// Set row
-		iprintf ("\x1b[%d;12H", i + ITEMS_START_ROW);
-		iprintf ("%s", patch->fwVersion.c_str());
+		iprintf ("\x1b[%d;6H", i + ITEMS_START_ROW);
+		iprintf ("%s", patch->description.c_str());
 	}
 }
 
@@ -72,7 +72,7 @@ void showPatchList (const vector<patchEntry>& patchList, int startRow) {
 int main(int argc, char **argv) {
 //---------------------------------------------------------------------------------
 	consoleDemoInit();
-	
+
 	iprintf("\n\n");
 	iprintf("    >> 3DS ROP Installer <<   ");
 	iprintf("\n\n\n");
@@ -90,14 +90,14 @@ int main(int argc, char **argv) {
 	}
 
 	int header;
-	
+
 	fread(&header,1,4,patchfile);
 
 	if ( header != 'ROPP') {
 		iprintf("Invalid patch file!\n");
 		halt();
 	}
-	
+
 	int index_offset;
 	fread(&index_offset,1,4,patchfile);
 
@@ -107,23 +107,39 @@ int main(int argc, char **argv) {
 	patchEntry patch;
 
 	while(1) {
-		patch.fwVersion.clear();
-		char digit = fgetc(patchfile);
+		patch.description.clear();
+		int string_offset;
+
+		fread(&string_offset,1,4,patchfile);
 		if (feof(patchfile)) break;
-		patch.fwVersion += digit;
-		for (int i=1; i<4; i++) {
-			digit = fgetc(patchfile);
-			if ( !patch.fwVersion.empty() && digit != 0) patch.fwVersion += '.';
-			if ( digit != 0) patch.fwVersion += digit;
-		}
-		
-		
+
 		fread(&patch.fileoffset,1,4,patchfile);
+
+		// save file pointer
+		int file_ptr = ftell(patchfile);
+
+		fseek(patchfile,string_offset,SEEK_SET);
+
+		char description[21];
+
+		char *desc = fgets(description, 20, patchfile);
+
+		if (desc == NULL ) {
+			iprintf("Failed reading description\n");
+			halt();
+		}
+
+		// terminate string
+		description[20] = 0;
+		patch.description = description;
 		patches.push_back(patch);
+
+		// restore file pointer for next offset
+		fseek(patchfile,file_ptr,SEEK_SET);
 	}
-	
+
 	iprintf("    Select Firmware version");
-	
+
 	int pressed,fwSelected=0,screenOffset=0;
 
 	showPatchList(patches,fwSelected);
@@ -131,7 +147,7 @@ int main(int argc, char **argv) {
 	while(1) {
 
 		// Show cursor
-		iprintf ("\x1b[%d;8H[>\x1b[12C<]", fwSelected - screenOffset + ITEMS_START_ROW);
+		iprintf ("\x1b[%d;3H[>\x1b[22C<]", fwSelected - screenOffset + ITEMS_START_ROW);
 
 		// Power saving loop. Only poll the keys once per frame and sleep the CPU if there is nothing else to do
 		do {
@@ -141,12 +157,12 @@ int main(int argc, char **argv) {
 		} while (!pressed);
 
 		// Hide cursor
-		iprintf ("\x1b[%d;8H  \x1b[12C  ", fwSelected - screenOffset + ITEMS_START_ROW);
+		iprintf ("\x1b[%d;3H  \x1b[22C  ", fwSelected - screenOffset + ITEMS_START_ROW);
 		if (pressed & KEY_UP) 		fwSelected -= 1;
 		if (pressed & KEY_DOWN) 	fwSelected += 1;
-		
+
 		if (pressed & KEY_A) break;
-		
+
 		if (fwSelected < 0) 	fwSelected = patches.size() - 1;		// Wrap around to bottom of list
 		if (fwSelected > ((int)patches.size() - 1))		fwSelected = 0;		// Wrap around to top of list
 
@@ -154,18 +170,18 @@ int main(int argc, char **argv) {
 	}
 
 	iprintf ("\x1b[5;0H\x1b[J");
-	
+
 
 	const patchEntry *selectedPatch = &patches.at(fwSelected);
 
 
-	iprintf("Patching for %s\n\n",selectedPatch->fwVersion.c_str());
+	iprintf("Patching for %s\n\n",selectedPatch->description.c_str());
 
 	// read header
 	readFirmware(0,workbuffer,42);
 
 	u32 userSettingsOffset = (workbuffer[32] + (workbuffer[33] << 8))<<3;
-	
+
 	// read User Settings
 	readFirmware(userSettingsOffset,workbuffer,512);
 
@@ -186,7 +202,7 @@ int main(int argc, char **argv) {
 
 		uint32_t patchOffsetList[numPatches];
 		fread(patchOffsetList,1,sizeof(patchOffsetList),patchfile);
-			
+
 		for (int i=0; i<numPatches; i++) {
 
 			fseek(patchfile,patchOffsetList[i],SEEK_SET);
@@ -199,8 +215,8 @@ int main(int argc, char **argv) {
 
 	userSettingsCRC(workbuffer);
 	userSettingsCRC(workbuffer+256);
-	
-	
+
+
 	iprintf("Writing ... ");
 	int ret = writeFirmware(userSettingsOffset,workbuffer,512);
 
@@ -213,7 +229,7 @@ int main(int argc, char **argv) {
 		iprintf("success\n");
 
 	}
-	
+
 	iprintf("Verifying ... ");
 	readFirmware(userSettingsOffset,workbuffer+512,512);
 
