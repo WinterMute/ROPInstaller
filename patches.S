@@ -52,7 +52,7 @@ p4_1_start:
 	.word DATA_ADDRESS		@ (r0) _this
 	.word 0x00000001		@ (r2) openflags
 	.word 0x001549e1		@ pop {r1,pc}
-	.word 0x00276f38		@ (utf16* "YS:/Launcher.dat")
+	.word 0x00276f64		@ (utf16* "YS:/MsetForBoss.dat")
 	.word 0x001b82ac		@ IFile_Open(): r0=_this r1=UTF16 path r2=openflags, ends with ldmfd sp!, {r4-r8,pc}
 	.word 0xdeadbeef		@ (r4)
 	.word 0xdeadbeef		@ (r5)
