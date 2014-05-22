@@ -32,10 +32,10 @@ patch_4_x_description:
 @---------------------------------------------------------------------------------
 	.asciz	"4.x eur/jpn/usa/kor"
 
-#define	P4_LOAD_ADDRESS	0x00279400
-#define	S2_LOAD_ADDRESS	0x002b0000
-#define	DATA_ADDRESS	0x00279000
-#define READ_SIZE	0x9000
+#define	P4_LOAD_ADDRESS		0x00279400
+#define	P4_S2_LOAD_ADDRESS	0x002b0000
+#define	P4_DATA_ADDRESS		0x00279000
+#define P4_READ_SIZE		0x9000
 
 @---------------------------------------------------------------------------------
 patch_4_x_1:
@@ -54,7 +54,7 @@ p4_1_start:
 	.word 0xdeadbeef		@ (r4)
 	.word 0xdeadbeef		@ (r5)
 	.word 0x0010f2b9		@ pop {r0,r2,pc}
-	.word DATA_ADDRESS		@ (r0) _this
+	.word P4_DATA_ADDRESS		@ (r0) _this
 	.word 0x00000001		@ (r2) openflags
 	.word 0x001549e1		@ pop {r1,pc}
 	.word 0x00276f64		@ (utf16* "YS:/MsetForBoss.dat")
@@ -65,12 +65,12 @@ p4_1_start:
 	.word 0xdeadbeef		@ (r7)
 	.word 0xdeadbeef		@ (r8)
 	.word 0x0010f2b9		@ pop {r0,r2,pc}
-	.word DATA_ADDRESS		@ (r0) _this
-	.word S2_LOAD_ADDRESS		@ (r2) buffer
+	.word P4_DATA_ADDRESS		@ (r0) _this
+	.word P4_S2_LOAD_ADDRESS	@ (r2) buffer
 	.word 0x001549e1		@ pop {r1,pc}
-	.word DATA_ADDRESS + 32		@ (r1) &readbytes
+	.word P4_DATA_ADDRESS + 32	@ (r1) &readbytes
 	.word 0x0010538c		@ pop {r3,pc}
-	.word READ_SIZE			@ (r3) size
+	.word P4_READ_SIZE		@ (r3) size
 	.word 0x001b3958		@ IFile_Read(): r0=_this r1=&readbytes r2=readbuf r3=size, ends with ldmfd sp!,{r4-r9,pc}
 					@ This reads the first READ_SIZE bytes from the file to S2_LOAD_ADDRESS.
 	.word 0xdeadbeef		@ (r4)
@@ -81,7 +81,7 @@ p4_1_start:
 	.word 0xdeadbeef		@ (r9)
 	.word 0x0010538c		@ pop {r3,pc}
 
-	.word (S2_LOAD_ADDRESS-(P4_LOAD_ADDRESS+p4_1_end-p4_1_start))
+	.word (P4_S2_LOAD_ADDRESS-(P4_LOAD_ADDRESS+p4_1_end-p4_1_start))
 
 	.word 0x00143d60		@ add sp,sp,r3 | ldr pc,[sp],#4
 @---------------------------------------------------------------------------------
