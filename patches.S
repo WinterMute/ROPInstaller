@@ -112,6 +112,88 @@ p4_2_end:
 @---------------------------------------------------------------------------------
 
 @---------------------------------------------------------------------------------
+patch_6_x_description:
+@---------------------------------------------------------------------------------
+	.asciz	"6.x eur/jpn/usa/kor"
+
+@---------------------------------------------------------------------------------
+#define	P6_DATAADR	0x00287000
+#define	P6_SECPAYADR	0x00297000
+#define	P6_TRDPAYADR	0x00290000
+@---------------------------------------------------------------------------------
+
+@---------------------------------------------------------------------------------
+patch_6_x_1:
+@---------------------------------------------------------------------------------
+	.word	p6_1_end - p6_1_start
+	.word	0
+
+@---------------------------------------------------------------------------------
+p6_1_start:
+@---------------------------------------------------------------------------------
+	.word 0x001a9349 		@ pop	{r0, pc}
+	.word 0x00280252 		@ r0 (char* "YS:")
+	.word 0x0019B498 		@ FS_MOUNTSDMC()
+	.word 0xDEADDEAD 		@ r3 (garbage)
+	.word 0xDEADDEAD 		@ r4 (garbage)
+	.word 0xDEADDEAD 		@ r5 (garbage)
+	.word 0x0011be4d 		@ pop {r1, r2, r3, pc}
+	.word 0x002846D8 		@ r1 (wchar* "YS:/MsetForBoss.dat")
+	.word 0x00000001 		@ r2 (openflags)
+	.word 0xDEADDEAD 		@ r3 (garbage)
+	.word 0x001a9349 		@ pop	{r0, pc}
+	.word P6_DATAADR    		@ r0 (_this)
+	.word 0x001C08B8 		@ IFile_Open(_this, path, openflags)
+	.word 0xDEADDEAD 		@ r4 (garbage)
+	.word 0xDEADDEAD 		@ r5 (garbage)
+	.word 0xDEADDEAD 		@ r6 (garbage)
+	.word 0xDEADDEAD 		@ r7 (garbage)
+	.word 0xDEADDEAD 		@ r8 (garbage)
+	.word 0x0011be4d 		@ pop {r1, r2, r3, pc}
+	.word P6_DATAADR+32 		@ r1 (&readbytes)
+	.word P6_TRDPAYADR  		@ r2 (dst)
+	.word 0x00007000 		@ r3 (size)
+	.word 0x001a9349 		@ pop	{r0, pc}
+	.word P6_DATAADR    		@ r0 (_this)
+	.word 0x001BC18C 		@ IFile_Read(_this, &readbytes, dst, size)
+	.word 0xDEADDEAD 		@ r4 (garbage)
+	.word 0xDEADDEAD 		@ r5 (garbage)
+	.word 0xDEADDEAD 		@ r6 (garbage)
+	.word 0xBADC0DED 		@ r7 (garbage) - is replaced by counter and CRC1
+	.word 0xDEADDEAD 		@ r8 (garbage)
+	.word 0xDEADDEAD 		@ r9 (garbage)
+	.word 0x00144BA4 		@ pop {r3} | add sp, sp, r3 | pop {pc}
+	.word (P6_TRDPAYADR-(P6_SECPAYADR+p6_1_end-p6_1_start)) @ r3
+@---------------------------------------------------------------------------------
+p6_1_end:
+@---------------------------------------------------------------------------------
+
+@---------------------------------------------------------------------------------
+patch_6_x_2:
+@---------------------------------------------------------------------------------
+	.word	p6_2_end - p6_2_start
+	.word	0x1b4
+
+@---------------------------------------------------------------------------------
+p6_2_start:
+@---------------------------------------------------------------------------------
+	.word 0x0011be4d 		@ pop {r1, r2, r3, pc}
+	.word P6_SECPAYADR  		@ r1 (dst address)
+	.word 0x00000100 		@ r2 (size)
+	.word 0xDEADDEAD 		@ r3 (garbage)
+	.word 0x001a9349 		@ pop	{r0, pc}
+	.word 0x0001FE00 		@ r0 (offset)
+	.word 0x00133838 		@ cfg:nor::ReadData(offset,dst,size), ends in ldmfd sp!, {r4,pc}
+	.word 0xDEADDEAD 		@ r4 (garbage)
+	.word 0x00144BA4 		@ pop {r3} | add sp, sp, r3 | pop {pc}
+	.word (P6_SECPAYADR-0x0FFFFF64)	@ r3
+
+
+@---------------------------------------------------------------------------------
+p6_2_end:
+@---------------------------------------------------------------------------------
+
+@---------------------------------------------------------------------------------
 patch_count1:
 @---------------------------------------------------------------------------------
 	.word	2
@@ -148,8 +230,23 @@ patch_4_x:
 	.word	patch_count2
 	.word	patch_message_length
 
+
+@---------------------------------------------------------------------------------
+patch_6_x:
+@---------------------------------------------------------------------------------
+	.word	0x50544348
+	.word	5
+	.word	patch_6_x_1
+	.word	patch_6_x_2
+	.word	patch_count1
+	.word	patch_count2
+	.word	patch_message_length
+
 @---------------------------------------------------------------------------------
 index:
 @---------------------------------------------------------------------------------
 	.word	patch_4_x_description
 	.word	patch_4_x
+
+	.word	patch_6_x_description
+	.word	patch_6_x
