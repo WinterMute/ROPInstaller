@@ -3,3 +3,4 @@ patches
 *.elf
 *.nds
 *.pnps
+*.dat

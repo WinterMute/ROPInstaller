@@ -150,24 +150,27 @@ else
   endif
 endif
 
-.PHONY: $(BUILD) clean
+.PHONY: $(BUILD) clean ropchains
 
 #---------------------------------------------------------------------------------
-$(BUILD): patches
+$(BUILD): patches ropchains
 	@mkdir -p $@
-	@make --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).nds $(SOUNDBANK)
-	@rm patches.elf patches
+	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).nds $(SOUNDBANK) patches.elf patches
+	@$(MAKE) -C ROPChains clean
 
 patches:	patches.elf
 	$(OBJCOPY) -O binary $^ $@
 
 patches.elf:	patches.S
-	$(CC)	-nostartfiles -nostdlib -Ttext=0 patches.S -o $@
+	$(CC) -nostartfiles -nostdlib -Ttext=0 patches.S -o $@
+
+ropchains:
+	$(MAKE) -C ROPChains
 
 #---------------------------------------------------------------------------------
 else
