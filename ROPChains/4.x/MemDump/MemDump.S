@@ -30,8 +30,7 @@ _start:
 	.word 0x001b3b54		@ IFile_Write(_this, &writtenbytes, src, size) ends with ldmfd sp!, {r4-r11,pc}
 
 FileName:
-	
-	.byte 'Y', 0, 'S' ,0, ':', 0, '/', 0, 'D', 0, 'U', 0, 'M', 0, 'P', 0, '_', 0, '4', 0, '_', 0, 'X', 0, '.', 0, 'B', 0, 'I', 0, 'N', 0, 0, 0
+	.string16 "YS:/memdump_4_x.bin"
 
 	.balign 32
 FILE:	.fill	256, 1, 0
