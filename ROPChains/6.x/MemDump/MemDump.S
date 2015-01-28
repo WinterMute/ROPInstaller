@@ -20,12 +20,12 @@ _start:
 		.word 0xdeadbeef 	@ r7 (garbage)
 		.word 0xdeadbeef 	@ r8 (garbage)
 	.word 0x0011be4d		@ pop {r1, r2, r3, pc}
-		.word FILE+32		@ r1 (&writtenbytes)
+		.word byteswritten	@ r1 (&byteswritten)
 		.word DUMPSTART		@ r2 (src)
 		.word DUMPSIZE		@ r3 (size)
 	.word 0x001a9349		@ pop {r0, pc}
 		.word FILE		@ r0 (_this)
-	.word 0x001BC384		@ IFile_Write(_this, &writtenbytes, src, size)
+	.word 0x001BC384		@ IFile_Write(_this, &byteswritten, src, size)
 		.word 0xdeadbeef	@ r4 (garbage)
 		.word 0xdeadbeef	@ r5 (garbage)
 		.word 0xdeadbeef	@ r6 (garbage)
@@ -37,4 +37,6 @@ FileName:
 	.string16 "YS:/memdump_6_x.bin"
 
 	.balign 32
-FILE:	.fill	256, 1, 0
+FILE:	.fill	32, 1, 0
+byteswritten:
+	.word	0

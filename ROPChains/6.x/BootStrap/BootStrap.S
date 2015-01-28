@@ -30,12 +30,12 @@ _start:
 		.word 0xdeadbeef 	@ r7 (garbage)
 		.word 0xdeadbeef 	@ r8 (garbage)
 	.word 0x0011be4d		@ pop {r1, r2, r3, pc}
-		.word FILE+32		@ r1 (&readbytes)
+		.word bytesread		@ r1 (&bytesread)
 		.word CODELOAD		@ r2 (src)
 		.word CODESIZE		@ r3 (size)
 	.word 0x001a9349		@ pop {r0, pc}
 		.word FILE		@ r0 (_this)
-	.word 0x001BC18C		@ IFile_Read(_this, &readbytes, src, size)
+	.word 0x001BC18C		@ IFile_Read(_this, &bytesread, src, size)
 		.word 0xdeadbeef	@ r4 (garbage)
 		.word 0xdeadbeef	@ r5 (garbage)
 		.word 0xdeadbeef	@ r6 (garbage)
@@ -141,4 +141,8 @@ FileName:
 	.string16 "YS:/boot.bin"
 
 	.balign 32
-FILE:	.fill	256, 1, 0
+FILE:	.fill	32, 1, 0
+
+bytesread:
+	.word	0
+
